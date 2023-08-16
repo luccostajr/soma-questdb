@@ -7,15 +7,20 @@ import br.cepel.questdb.data.IndicatorData;
 import br.cepel.questdb.domain.entities.IndicatorEntity;
 import br.cepel.questdb.services.IndicatorSymbolQuestDbService;
 import br.cepel.questdb.services.QuestDBService;
+import br.cepel.questdb.services.config.ServicesConfig;
 
 public class IndicatorQuestDbPersistence extends RecursiveAction {
   protected QuestDBService questDBService = null; 
   private IndicatorEntity entity = null;
 
-  public IndicatorQuestDbPersistence(IndicatorEntity entity) {
+  protected QuestDBService createQuestDBService(ServicesConfig servicesConfig) {
+    return new IndicatorSymbolQuestDbService(servicesConfig); 
+  }
+
+  public IndicatorQuestDbPersistence(IndicatorEntity entity, ServicesConfig servicesConfig) {
     if (entity == null) throw new IllegalArgumentException("IndicatorSenderService(ctor)::entity is null.");
     this.entity = entity;
-    this.questDBService = createQuestDBService();
+    this.questDBService = createQuestDBService(servicesConfig);
   }
 
   public String getName() {
@@ -60,9 +65,5 @@ public class IndicatorQuestDbPersistence extends RecursiveAction {
     }
 
     questDBService.flushAndClose();
-  }
-
-  protected QuestDBService createQuestDBService() {
-    return new IndicatorSymbolQuestDbService(); 
   }
 }

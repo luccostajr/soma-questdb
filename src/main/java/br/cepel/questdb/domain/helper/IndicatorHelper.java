@@ -9,7 +9,7 @@ import br.cepel.questdb.data.IndicatorData;
 
 public class IndicatorHelper {
   private static final long DEFAULT_QUANTITY = 5000; 
-  private static Random random = null;
+  private static Random random = new Random(System.currentTimeMillis());
   private static Long counterDate = 0L;
   private static Long now = 0L;
 
@@ -79,12 +79,10 @@ public class IndicatorHelper {
   }
 
   public static Double generateRandomValue() { 
-    random.setSeed(System.currentTimeMillis());
     return Math.floor(random.nextDouble()*100);
   }
 
   public static Long generateRandomIndicatorId() {
-    random.setSeed(System.currentTimeMillis());
     return Math.abs(random.nextLong());
   }
 }

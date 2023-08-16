@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.Random;
 
 import br.cepel.questdb.data.IndicatorData;
+import br.cepel.questdb.domain.helper.IndicatorHelper;
 
 public class IndicatorEntity {
   private final String DEFAULT_NAME = "IndicatorEntity";
   private static Random random = new Random();
+  private static Long firstIndicatorId = null;
 
   protected String name = null;
   protected List<IndicatorData> data = null;
@@ -33,16 +35,14 @@ public class IndicatorEntity {
   public IndicatorEntity(IndicatorEntity entity, Long indicatorId) { 
     this(entity);
     
-    this.indicatorId = getNewIndicatorId();
-    
     Long newIndicatorId = indicatorId;
-    if (newIndicatorId == null) newIndicatorId = getNewIndicatorId();
+    if (newIndicatorId == null) newIndicatorId = IndicatorHelper.generateRandomIndicatorId();
     
     List<IndicatorData> data = entity.getData();
     System.out.println(data.size());
 
     for (IndicatorData indicatorData : data) {
-      if (firstTimeStamp == null) firstTimeStamp = indicatorData.getDate();
+      if (firstIndicatorId == null) firstIndicatorId = indicatorData.getDate();
       indicatorData.setIndicatorId(newIndicatorId);
     }
   }
@@ -65,5 +65,26 @@ public class IndicatorEntity {
 
   public String getName() {
       return name;
+  }
+
+  public Long getFirstIndicatorId() {
+    return firstIndicatorId;
+  }
+
+  public Long getLastTimeStamp(int limit) {
+    if (limit > getData().size()) limit = getData().size();
+    
+    Long indicatorId = null;
+    int counter = 0;
+    
+    for (IndicatorData indicatorData : getData()) {
+      if (counter == limit) {
+        indicatorId = indicatorData.getIndicatorId();
+        break;
+      }
+      counter++;
+    }
+    
+    return indicatorId;
   }
 }
