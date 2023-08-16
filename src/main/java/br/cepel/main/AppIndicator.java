@@ -1,21 +1,13 @@
-package com.example.main.historic;
+package br.cepel.main;
 
-import com.example.domain.core.Entity;
-import com.example.domain.entities.AbstractHistoric;
-import com.example.domain.entities.LongHistoric;
-import com.example.domain.entities.data.DoubleHistoricData;
-import com.example.services.core.service.HistoricSymbolSenderService;
-import com.example.services.core.service.SenderService;
+import br.cepel.questdb.domain.entities.IndicatorEntity;
+import br.cepel.questdb.domain.historic.IndicatorHistoric;
+import br.cepel.questdb.services.core.IndicatorQuestDbPersistence;
 
-public class AppLongHistoricSymbol extends AbstractAppHistoric<Long> {
+public class AppIndicator extends AbstractApp {
   private static final String TABLE_NAME = "SymbLongHistoricData";
   private static final String FILE_NAME_STRING = "QUERY_LONG_SYMBOL";
   private static final String RESULT_FILE_NAME = "TEMPOS_LONG_SYMBOL";
-
-  @Override
-  protected SenderService<?> createSenderService(AbstractHistoric<Long> historic) {
-    return new HistoricSymbolSenderService<>(historic);
-  }
 
   @Override
   protected AppHistoricConfig getApplicationConfig() {
@@ -32,7 +24,12 @@ public class AppLongHistoricSymbol extends AbstractAppHistoric<Long> {
   }
 
   @Override
-  protected AbstractHistoric<Long> createHistoric(Entity<DoubleHistoricData<Long>> entity) {
-    return new LongHistoric(entity);
+  protected IndicatorHistoric createHistoric(IndicatorEntity entity) {
+    return new IndicatorHistoric(entity);
+  }
+
+  @Override
+  protected IndicatorQuestDbPersistence createSenderService(IndicatorEntity entity) {
+    return new IndicatorQuestDbPersistence(entity);
   }
 }

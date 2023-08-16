@@ -1,11 +1,11 @@
-package com.example.domain.entities.data;
+package br.cepel.questdb.data;
 
-public class DefaultHistoricData<V,T> {
-  protected long date;
+public class DefaultData<V,T> {
+  protected Long date;
   protected V value;
   protected T indicatorId = null;
 
-  public DefaultHistoricData(long date, V value, T indicatorId) {
+  public DefaultData(long date, V value, T indicatorId) {
     this.date = date;
     this.value = value;
     this.indicatorId = indicatorId;
@@ -15,8 +15,16 @@ public class DefaultHistoricData<V,T> {
     return date;
   }
 
+  public void setDate(Long date) {
+    this.date = date;
+  }
+
   public V getValue() {
     return value;
+  }
+
+  public void setValue(V value) {
+    this.value = value;
   }
   
   public T getIndicatorId() {

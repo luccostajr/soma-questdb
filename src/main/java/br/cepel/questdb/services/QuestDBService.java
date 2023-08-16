@@ -1,11 +1,10 @@
-package com.example.services.questdb.service;
+package br.cepel.questdb.services;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.Semaphore;
 
-import com.example.services.questdb.helper.QuestDBHelper;
-
+import br.cepel.questdb.services.properties.DbProperties;
 import io.questdb.client.Sender;
 
 public abstract class QuestDBService {
@@ -24,7 +23,7 @@ public abstract class QuestDBService {
     }
 
     private void createSender() {
-        if (sender == null) sender = QuestDBHelper.getInfluxSender();
+        if (sender == null) sender = DbProperties.getInfluxSender();
     }
 
     protected Sender getSender() {
@@ -33,7 +32,7 @@ public abstract class QuestDBService {
     }
 
     protected void createConnection() throws SQLException {
-        if (connection == null) connection = QuestDBHelper.getPostgresConnection();
+        if (connection == null) connection = DbProperties.getPostgresConnection();
     }
 
     protected Connection getConnection() throws SQLException {

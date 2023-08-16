@@ -1,4 +1,4 @@
-package com.example.services.questdb.helper;
+package br.cepel.questdb.services.properties;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -14,7 +14,7 @@ soma.jdbc.driver=org.postgresql.Driver
 soma.jdbc.url=jdbc:postgresql://postgres/postgres
 */
 
-public class QuestDBHelper {
+public class DbProperties {
   private static final String DEFAULT_SSLMODE = "disable";
   private static final String DEFAULT_HOST = "localhost";
   private static final String DEFAULT_INFLUX_PORT = "9009";

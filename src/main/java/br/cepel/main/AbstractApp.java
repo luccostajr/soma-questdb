@@ -1,4 +1,4 @@
-package com.example.main.historic;
+package br.cepel.main;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -12,18 +12,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
-import com.example.domain.core.Entity;
-import com.example.domain.core.SingleValue;
-import com.example.domain.entities.AbstractHistoric;
-import com.example.domain.entities.data.DoubleHistoricData;
-import com.example.services.core.helper.Helper;
-import com.example.services.core.service.SenderService;
-import com.example.services.questdb.helper.QuestDBHelper;
+import br.cepel.questdb.data.IndicatorData;
+import br.cepel.questdb.domain.entities.IndicatorEntity;
+import br.cepel.questdb.domain.helper.IndicatorHelper;
+import br.cepel.questdb.domain.historic.IndicatorHistoric;
+import br.cepel.questdb.services.core.IndicatorQuestDbPersistence;
+import br.cepel.questdb.services.properties.DbProperties;
 
-public abstract class AbstractAppHistoric<T> {
-  private static final String DEFAULT_PATH = ""; //"questdb-demo/storytelling/";
+public abstract class AbstractApp {
+  private static final String DEFAULT_PATH = "storytelling/";
   private static final String DEFAULT_TABLE_NAME = "HistoricData";
   private static final String DEFAULT_FILE_NAME = "QUERY_HISTORIC";
   private static final String DEFAULT_RESULT_FILE_NAME = "RESULTS_HISTORIC";
@@ -41,12 +39,12 @@ public abstract class AbstractAppHistoric<T> {
   private Map<String,List<Integer>> timeResults = null;
 
   private AppHistoricConfig applicationConfig = null;
-  private SenderService<?> senderService = null;
+  private IndicatorQuestDbPersistence senderService = null;
 
   /*
    * INJECTION OF THE SPECIFIC SENDER SERVICE
    */
-  protected abstract SenderService<?> createSenderService(AbstractHistoric<T> historic);
+  protected abstract IndicatorQuestDbPersistence createSenderService(IndicatorEntity entity);
 
   /*
    * INJECTION OF THE CUSTOM CONFIGURATION PARAMETERS
@@ -56,8 +54,7 @@ public abstract class AbstractAppHistoric<T> {
   /*
    * INJECTION OF THE HISTORIC CLASS
    */
-  protected abstract AbstractHistoric<T> 
-    createHistoric(Entity<DoubleHistoricData<T>> entity);
+  protected abstract IndicatorHistoric createHistoric(IndicatorEntity entity);
 
   /*
    * CONFIGURATION PARAMETERS CLASS
@@ -72,7 +69,7 @@ public abstract class AbstractAppHistoric<T> {
     public long distinctHistorics = 0;
     public int numberOfQueryResults = 0;
     public boolean toExecuteQuery = false;
-    public T indicatorId = null;
+    public Long indicatorId = null;
     public String sql = "";
     public int timeoutRetries = 0;
     public boolean waitForever = false;
@@ -221,11 +218,10 @@ public abstract class AbstractAppHistoric<T> {
   /*
    * GET FIRST INDICATOR ID (RANDOM) - TO FILTER QUERIES RESULTS
    */
-  private T getFirstIndicatorId(AbstractHistoric<T> historic) {
-    List<SingleValue<DoubleHistoricData<T>>> data = historic.getData();
-    SingleValue<DoubleHistoricData<T>> historicValue = data.get(0);
-    DoubleHistoricData<T> historicData = historicValue.getValue();
-    return historicData.getIndicatorId();
+  protected Long getFirstIndicatorId(IndicatorHistoric historic) {
+    List<IndicatorData> data = historic.getData();
+    IndicatorData indicatorData = data.get(0);
+    return indicatorData.getIndicatorId();
   }
 
   /*
@@ -234,7 +230,7 @@ public abstract class AbstractAppHistoric<T> {
   private Connection prepareDB() throws SQLException, IOException {
     long start = System.currentTimeMillis();
     
-    Connection connection = QuestDBHelper.getPostgresConnection();
+    Connection connection = DbProperties.getPostgresConnection();
 
     dumpTimeResultMessage("Preparando o ambiente QuestDB",start);
 
@@ -313,7 +309,7 @@ public abstract class AbstractAppHistoric<T> {
             }
 
             if (rs == null || recordsReaded < effectiveNumberOfQueryResults) {
-              Helper.sleep(1000);
+              IndicatorHelper.sleep(1000);
               System.out.print(".");
               retriesCount++;
             }
@@ -338,13 +334,7 @@ public abstract class AbstractAppHistoric<T> {
           // int count = 0;
           while (rs.next()) {
             String indicatorId = rs.getString("indicatorId");
-            T var = null;
-            if (var instanceof UUID) {
-              UUID uuid = UUID.fromString(indicatorId);
-            }
-            else if (var instanceof Long) {
-              Long longId = Long.parseLong(indicatorId);
-            }
+            Long longId = Long.parseLong(indicatorId);
 
             Double value = rs.getDouble("value");
             long timestamp = rs.getTimestamp("timestamp").getTime();
@@ -380,12 +370,12 @@ public abstract class AbstractAppHistoric<T> {
   /*
    * CREATE HISTORIC SENDER SERVICE
    */
-  private void sendHistoric(AbstractHistoric<T> historic) throws IOException {
+  protected void sendHistoric(IndicatorHistoric historic) throws IOException {
     senderService = createSenderService(historic);
     senderService.execute();
   }
 
-  private void getFirstIndicators(AbstractHistoric<T> historic) {
+  protected void getFirstIndicators(IndicatorHistoric historic) {
     if (applicationConfig.indicatorId == null) 
       applicationConfig.indicatorId = getFirstIndicatorId(historic);
     
@@ -399,21 +389,24 @@ public abstract class AbstractAppHistoric<T> {
   /*
    * CREATE HISTORIC
    */
-  private AbstractHistoric<T> createDistinctHistoric() throws IOException {
-    List<SingleValue<DoubleHistoricData<T>>> historicArray = 
+  private IndicatorHistoric createDistinctHistoric() throws IOException {
+    List<IndicatorData> historicArray = 
       new ArrayList<>((int) applicationConfig.quantityPerHistoric);
       
     for (int i = 0; i < applicationConfig.quantityPerHistoric; i++) {
-      Long timestamp = SingleValue.getNow();
-      Double value = Helper.generateRandomValue();
+      Long timestamp = IndicatorHelper.getNow();
+      Double value = IndicatorHelper.generateRandomValue();
 
-      DoubleHistoricData<T> historicData = new DoubleHistoricData<T>(timestamp, value);
-      SingleValue<DoubleHistoricData<T>> historicValue = new SingleValue<>(historicData);
-      historicArray.add(historicValue);
+      IndicatorData indicatorData = new IndicatorData ();
+      indicatorData.setDate(timestamp);
+      indicatorData.setValue(value);
+      indicatorData.setIndicatorId(0L);
+
+      historicArray.add(indicatorData);
     }
 
-    Entity<DoubleHistoricData<T>> entity = new Entity<>(applicationConfig.tableName, historicArray);
-    AbstractHistoric<T> historic = createHistoric(entity);
+    IndicatorEntity entity = new IndicatorEntity(applicationConfig.tableName, historicArray);
+    IndicatorHistoric historic = createHistoric(entity);
 
     // get first uuid to use as indicatorId in the query
     getFirstIndicators(historic);
@@ -443,7 +436,7 @@ public abstract class AbstractAppHistoric<T> {
       header += ";" + (i+1);
 
       long startCreate = System.currentTimeMillis();
-      AbstractHistoric<T> historic = createDistinctHistoric();
+      IndicatorHistoric historic = createDistinctHistoric();
       long durationCreate = System.currentTimeMillis() - startCreate;
       totalTimeToCreate += durationCreate;
 
