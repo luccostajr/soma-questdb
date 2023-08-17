@@ -1,6 +1,6 @@
 package br.cepel.questdb.domain.helper;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -11,32 +11,32 @@ public class IndicatorHelper {
   private static final long DEFAULT_QUANTITY = 5000; 
   private static Random random = new Random(System.currentTimeMillis());
   private static Long counterDate = 0L;
-  private static Long now = 0L;
 
   public static Long getNow() {
-    if (now == null) {
-      now = Instant.now().toEpochMilli();
-    }
-    return (now + counterDate++) * 1000000;
+    ZonedDateTime now = ZonedDateTime.now();
+    long date = now.toInstant().toEpochMilli() + counterDate++;
+    return date * 1000000;
   }
 
   public static void sleep(long millis) {
     try {
       Thread.sleep(millis);
-    } catch (InterruptedException e) {
+    } 
+    catch (InterruptedException e) {
       e.printStackTrace();
     }
   }
 
   public static List<IndicatorData> generateData(Long quantity, Double stableValue) { 
     List<IndicatorData> dataList = new ArrayList<IndicatorData>(); 
-    Long date = Instant.now().toEpochMilli() + counterDate++; 
     
-    for(long i = 0; i < quantity; i++) { 
+    for (long i = 0; i < quantity; i++) { 
+      Long date = getNow(); 
       IndicatorData indicatorData = new IndicatorData();
+
       indicatorData.setValue(stableValue);
       indicatorData.setIndicatorId(random.nextLong(100000));
-      indicatorData.setDate(date * 1000000);
+      indicatorData.setDate(date);
 
       dataList.add(indicatorData); 
     } 
@@ -49,20 +49,15 @@ public class IndicatorHelper {
   }
 
   public static List<IndicatorData> generateRandomData(Long quantity) { 
-    if (random == null) { 
-      random = new Random();
-      random.setSeed(System.currentTimeMillis());
-    }
-
     List<IndicatorData> dataList = new ArrayList<IndicatorData>(); 
-    Long date = Instant.now().toEpochMilli() + counterDate++; 
 
     for (long i = 0; i < quantity; i++) { 
-      Double value = generateRandomValue(); 
+      Long date = getNow(); 
       IndicatorData indicatorData = new IndicatorData();
-      indicatorData.setValue(value);
+
+      indicatorData.setValue(generateRandomValue());
       indicatorData.setIndicatorId(random.nextLong(100000));
-      indicatorData.setDate(date * 1000000);
+      indicatorData.setDate(date);
 
       dataList.add(indicatorData); 
     } 

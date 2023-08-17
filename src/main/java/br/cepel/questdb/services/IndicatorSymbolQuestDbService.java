@@ -74,12 +74,12 @@ public class IndicatorSymbolQuestDbService extends QuestDBService {
   /*
    * EXECUTE QUERY
    */
-  private Connection prepareDB() throws SQLException, IOException {
-    //long start = System.currentTimeMillis();
+  private Connection prepareDB(FileWriter resultsWriter) throws SQLException, IOException {
+    long start = System.currentTimeMillis();
     
     Connection connection = DbProperties.getPostgresConnection();
 
-    //dumpTimeResultMessage("Preparando o ambiente QuestDB",start);
+    ServicesHelper.dumpTimeResultMessage(resultsWriter, "Preparando o ambiente QuestDB",start);
 
     return connection;
   }
@@ -115,12 +115,39 @@ public class IndicatorSymbolQuestDbService extends QuestDBService {
     return effectiveNumberOfQueryResults;
   }
 
+  private List<IndicatorData> readResultSet (ResultSet rs) throws SQLException {
+    List<IndicatorData> data = new ArrayList<>();
+    rs.beforeFirst();
+    while (rs.next()) {
+      IndicatorData indicatorData = new IndicatorData();
+      indicatorData.setIndicatorId(rs.getLong("indicatorId"));
+      indicatorData.setValue(rs.getDouble("value"));
+      indicatorData.setDate(rs.getTimestamp("timestamp").getTime());
+      data.add(indicatorData);
+      System.out.print(".");
+    }
+    System.out.println("\n");
+    return data;
+  }
+
+  private void storeResults (List<IndicatorData> data) throws Exception {
+    FileWriter writer = ServicesHelper.createFile("RESULTS.txt");
+    System.out.print("\nStoring results: ");
+    for (IndicatorData indicatorData : data) {
+      writer.write(indicatorData.toString());
+      writer.write("\n");
+      System.out.print(":");
+    }
+    System.out.println("\n");
+    writer.close();
+  }
+
   public void executeQuery(FileWriter logWriter, FileWriter resultsWriter) throws IOException, SQLException {
     long effectiveNumberOfQueryResults = prepareSQLClause(logWriter);
 
     Boolean hasAbnormalTermination = false;
     do {
-      Connection connection = prepareDB();
+      Connection connection = prepareDB(resultsWriter);
       try (PreparedStatement preparedStatement = 
               connection.prepareStatement(
                 servicesConfig.sql,
@@ -181,31 +208,24 @@ public class IndicatorSymbolQuestDbService extends QuestDBService {
         
           long startQuery = System.currentTimeMillis();
 
-          recordsReaded = 0;
-          rs.beforeFirst();
+          List<IndicatorData> listResult = readResultSet (rs);
+          recordsReaded = listResult.size();
 
-          // int count = 0;
-          while (rs.next()) {
-            String indicatorId = rs.getString("indicatorId");
-            Long longId = Long.parseLong(indicatorId);
-
-            Double value = rs.getDouble("value");
-            long timestamp = rs.getTimestamp("timestamp").getTime();
-
-            // dumpMessage("("+(count++)+") "+
-            //   "indicatorId="+indicatorId+", value="+value+", timestamp="+timestamp);
-            // count++;
-            recordsReaded++;
-            System.out.print(".");
-          }
-          
           ServicesHelper.dumpTimeResultMessage(
             logWriter, "Consultando todos os registros do critério", startQuery);
           
-          System.out.println("x");
           ServicesHelper.dumpMessage(
             logWriter, "Fetched " + recordsReaded + " records.");
           servicesConfig.waitForever = false;
+
+          try {
+            long startTime = System.currentTimeMillis();
+            storeResults(listResult);
+            ServicesHelper.dumpDeltaMessage(logWriter, "Gravando resultado da consulta SQL", startTime);
+          } 
+          catch (Exception e) {
+            e.printStackTrace();
+          }
         } 
         else {
           if (hasAbnormalTermination) ServicesHelper.dumpMessage(

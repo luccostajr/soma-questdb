@@ -1,5 +1,9 @@
 package br.cepel.questdb.data;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
 public class DefaultData<V,T> {
   protected Long date;
   protected V value;
@@ -33,5 +37,12 @@ public class DefaultData<V,T> {
 
   public void setIndicatorId(T indicatorId) {
     this.indicatorId = indicatorId;
+  }
+
+  @Override
+  public String toString() {
+    Instant instant = Instant.ofEpochMilli(date);
+    ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneId.systemDefault());
+    return "DefaultData::[date=" + zonedDateTime + ", value=" + value + ", indicatorId=" + indicatorId + "]";
   }
 }
