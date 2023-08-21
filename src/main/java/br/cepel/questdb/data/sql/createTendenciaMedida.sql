@@ -1,0 +1,1 @@
+CREATE TABLE TENDENCIA_MEDIDA (cod_tendencia symbol, valor double, data timestamp) timestamp(data);

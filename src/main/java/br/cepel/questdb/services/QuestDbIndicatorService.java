@@ -6,8 +6,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,12 +18,12 @@ import br.cepel.questdb.services.helper.ServicesHelper;
 import br.cepel.questdb.services.properties.DbProperties;
 import io.questdb.client.Sender;
 
-public class IndicatorSymbolQuestDbService extends QuestDBService {
+public class QuestDbIndicatorService extends QuestDBService {
   private ServicesConfig servicesConfig = null;
 
-  public IndicatorSymbolQuestDbService(ServicesConfig servicesConfig) {
+  public QuestDbIndicatorService(ServicesConfig servicesConfig) {
     super();
-    this.servicesConfig = servicesConfig;
+    this.servicesConfig = servicesConfig; 
   }
 
   public ServicesConfig getServicesConfig() {
@@ -49,13 +47,10 @@ public class IndicatorSymbolQuestDbService extends QuestDBService {
       String indicatorId = indicatorData.getIndicatorId().toString();
 
       sender
-        // .table(historic.getName())
         .table(entity.getName())
-        .symbol("indicatorId", indicatorId)
-        .doubleColumn("value", value)
-        .at(date);
-
-      //sender.flush();
+        .symbol("cod_tendencia", indicatorId)
+        .doubleColumn("valor", value)
+        .at(date * 1000000);
     });
 
     flush();
@@ -88,17 +83,16 @@ public class IndicatorSymbolQuestDbService extends QuestDBService {
     String startDatetime = "";
     String endDatetime = "";
 
-    DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ");
-    startDatetime = dateFormat.format(servicesConfig.startTimestamp / 1000000);
-    endDatetime = dateFormat.format(servicesConfig.endTimestamp / 1000000);
+    startDatetime = ServicesHelper.longToDateTime(servicesConfig.startTimestamp);
+    endDatetime = ServicesHelper.longToDateTime(servicesConfig.endTimestamp);
 
     return 
-      " and timestamp between " + 
+      " and data between " + 
       "'" + startDatetime + "' and '" + endDatetime + "'";
   }
 
   private String getWhereClause () {
-    return " where indicatorId = '" + servicesConfig.indicatorId + "'";
+    return " where cod_tendencia = '" + servicesConfig.indicatorId + "'";
   }
 
   private long prepareSQLClause (FileWriter logWriter) throws IOException {
@@ -120,9 +114,9 @@ public class IndicatorSymbolQuestDbService extends QuestDBService {
     rs.beforeFirst();
     while (rs.next()) {
       IndicatorData indicatorData = new IndicatorData();
-      indicatorData.setIndicatorId(rs.getLong("indicatorId"));
-      indicatorData.setValue(rs.getDouble("value"));
-      indicatorData.setDate(rs.getTimestamp("timestamp").getTime());
+      indicatorData.setIndicatorId(rs.getLong("cod_tendencia"));
+      indicatorData.setValue(rs.getDouble("valor"));
+      indicatorData.setDate(rs.getTimestamp("data").getTime());
       data.add(indicatorData);
       System.out.print(".");
     }
@@ -131,7 +125,7 @@ public class IndicatorSymbolQuestDbService extends QuestDBService {
   }
 
   private void storeResults (List<IndicatorData> data) throws Exception {
-    FileWriter writer = ServicesHelper.createFile("RESULTS.txt");
+    FileWriter writer = ServicesHelper.createFile("./storytelling/RESULTS.txt");
     System.out.print("\nStoring results: ");
     for (IndicatorData indicatorData : data) {
       writer.write(indicatorData.toString());

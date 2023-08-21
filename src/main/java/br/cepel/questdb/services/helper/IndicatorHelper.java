@@ -1,6 +1,6 @@
-package br.cepel.questdb.domain.helper;
+package br.cepel.questdb.services.helper;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -10,12 +10,13 @@ import br.cepel.questdb.data.IndicatorData;
 public class IndicatorHelper {
   private static final long DEFAULT_QUANTITY = 5000; 
   private static Random random = new Random(System.currentTimeMillis());
-  private static Long counterDate = 0L;
 
   public static Long getNow() {
-    ZonedDateTime now = ZonedDateTime.now();
-    long date = now.toInstant().toEpochMilli() + counterDate++;
-    return date * 1000000;
+    // ZonedDateTime now = ZonedDateTime.now();
+    // Instant instant = now.toInstant();
+
+    Instant instant = Instant.now();
+    return instant.toEpochMilli();
   }
 
   public static void sleep(long millis) {

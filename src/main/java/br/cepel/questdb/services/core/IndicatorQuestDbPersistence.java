@@ -5,8 +5,8 @@ import java.util.concurrent.RecursiveAction;
 
 import br.cepel.questdb.data.IndicatorData;
 import br.cepel.questdb.domain.entities.IndicatorEntity;
-import br.cepel.questdb.services.IndicatorSymbolQuestDbService;
 import br.cepel.questdb.services.QuestDBService;
+import br.cepel.questdb.services.QuestDbIndicatorService;
 import br.cepel.questdb.services.config.ServicesConfig;
 
 public class IndicatorQuestDbPersistence extends RecursiveAction {
@@ -14,7 +14,7 @@ public class IndicatorQuestDbPersistence extends RecursiveAction {
   private IndicatorEntity entity = null;
 
   protected QuestDBService createQuestDBService(ServicesConfig servicesConfig) {
-    return new IndicatorSymbolQuestDbService(servicesConfig); 
+    return new QuestDbIndicatorService(servicesConfig); 
   }
 
   public IndicatorQuestDbPersistence(IndicatorEntity entity, ServicesConfig servicesConfig) {
@@ -53,7 +53,7 @@ public class IndicatorQuestDbPersistence extends RecursiveAction {
   }
 
   public void execute() {
-    IndicatorSymbolQuestDbService questDBService = (IndicatorSymbolQuestDbService) getQuestDBService(); 
+    QuestDbIndicatorService questDBService = (QuestDbIndicatorService) getQuestDBService(); 
 
     IndicatorEntity entity = getEntity();
     

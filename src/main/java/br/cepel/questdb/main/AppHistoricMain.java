@@ -1,4 +1,4 @@
-package br.cepel.main;
+package br.cepel.questdb.main;
 
 public class AppHistoricMain {
   public static void main(String[] args) {

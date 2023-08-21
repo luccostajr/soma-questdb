@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Random;
 
 import br.cepel.questdb.data.IndicatorData;
-import br.cepel.questdb.domain.helper.IndicatorHelper;
+import br.cepel.questdb.services.helper.IndicatorHelper;
 
 public class IndicatorEntity {
   private final String DEFAULT_NAME = "IndicatorEntity";

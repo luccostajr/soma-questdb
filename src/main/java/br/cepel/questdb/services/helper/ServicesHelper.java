@@ -2,6 +2,8 @@ package br.cepel.questdb.services.helper;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +12,7 @@ import java.util.Map;
 public class ServicesHelper {
   private static final String CSV_HEADER = "FASE";
   private static Map<String,List<Integer>> timeResults = null;
+  private static DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ");
 
   public static FileWriter createFile(String fileName) throws IOException {
     FileWriter writer = new FileWriter(fileName);
@@ -84,5 +87,9 @@ public class ServicesHelper {
   public static void dumpDeltaMessage(FileWriter writer, String timeResultTag, Long delta) throws IOException {
     dumpMessage(writer, timeResultTag + ": " + delta + " ms");
     addTimeResult(timeResultTag, delta.intValue()); 
+  }
+
+  public static String longToDateTime(long date) {
+    return dateFormat.format(date);
   }
 }

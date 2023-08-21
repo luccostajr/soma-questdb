@@ -1,4 +1,4 @@
-package br.cepel.main;
+package br.cepel.questdb.main;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 import br.cepel.questdb.domain.entities.IndicatorEntity;
 import br.cepel.questdb.domain.historic.IndicatorHistoric;
-import br.cepel.questdb.services.IndicatorSymbolQuestDbService;
+import br.cepel.questdb.services.QuestDbIndicatorService;
 import br.cepel.questdb.services.config.ServicesConfig;
 import br.cepel.questdb.services.core.IndicatorQuestDbPersistence;
 import br.cepel.questdb.services.helper.ServicesHelper;
@@ -35,7 +35,7 @@ public abstract class AbstractApp {
   /*
    * PROCESS
    */
-  private void process(int idx, IndicatorSymbolQuestDbService service, FileWriter logWriter, FileWriter resultsWriter) throws IOException, SQLException {
+  private void process(int idx, QuestDbIndicatorService service, FileWriter logWriter, FileWriter resultsWriter) throws IOException, SQLException {
     String header = "Execução #" + idx;
     String timeCreate = "CREATE";
     String timeSend = "SEND";
@@ -88,7 +88,7 @@ public abstract class AbstractApp {
   public void execute() throws IOException, SQLException {
     servicesConfig = getServicesConfig();
     
-    IndicatorSymbolQuestDbService service = new IndicatorSymbolQuestDbService(servicesConfig);
+    QuestDbIndicatorService service = new QuestDbIndicatorService(servicesConfig);
 
     for (int idx = 0; idx < servicesConfig.numberOfExecutions; idx++) {
       String fileName = servicesConfig.fileName + "_" + (idx+1) + ".txt";
